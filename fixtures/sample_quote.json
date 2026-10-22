@@ -1,0 +1,44 @@
+{
+  "captured_at": "2026-10-22T11:08:08+08:00",
+  "city": "天津市",
+  "scenario": "巨无霸同类套餐 · 三路官方 calculate-price 实算",
+  "notes": "价格单位为分。到店/得来速用巨无霸三件套 9900005466；外送菜单编码不同，用巨无霸中套餐 9900003001。仅供演示，实时价以 MCP 为准。",
+  "quotes": [
+    {
+      "channel": "pickup",
+      "label": "到店自取",
+      "price_fen": 3650,
+      "active_minutes": 7,
+      "store_name": "麦当劳天津小白楼地铁站朗香街餐厅",
+      "store_code": "1980053",
+      "notes": "距离约 101m，步行 ETA≈7 分钟（含店内等待）",
+      "product_name": "巨无霸三件套",
+      "delivery_fen": 0,
+      "packing_fen": 0
+    },
+    {
+      "channel": "drivethru",
+      "label": "得来速",
+      "price_fen": 3750,
+      "active_minutes": 12,
+      "store_name": "天津真理道得来速餐厅",
+      "store_code": "1980115",
+      "notes": "距离约 3841m，驾车 ETA≈12 分钟（含车道等待）",
+      "product_name": "巨无霸三件套",
+      "delivery_fen": 0,
+      "packing_fen": 0
+    },
+    {
+      "channel": "delivery",
+      "label": "麦乐送",
+      "price_fen": 5190,
+      "active_minutes": 0,
+      "store_name": "麦当劳天津小白楼地铁站朗香街餐厅",
+      "store_code": "1980053",
+      "notes": "商品 4400 + 配送 600 + 打包 190；用户主动时间按 0（等外卖不算主动出门）",
+      "product_name": "巨无霸中套餐",
+      "delivery_fen": 600,
+      "packing_fen": 190
+    }
+  ]
+}
