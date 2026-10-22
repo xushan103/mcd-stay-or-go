@@ -8,6 +8,20 @@
 
 ## 怎么用
 
+本机先打开小程序。要让 Agent 按实时菜单核价，再配 Token。
+
+### 打开小程序
+
+```bash
+python3 miniapp/server.py
+```
+
+浏览器打开 http://127.0.0.1:8765 。先填城市和地点，或点「用当前位置」。汉堡、小食、饮料按菜单点选。页面上的店名如果还写着小白楼，那是菜单快照，不是把你定位在天津。
+
+价格来自仓库里的官方核价快照，页面上写了采集时间。这一秒的实时价仍要走下面的 Token 和 Cursor。
+
+### 让 Agent 实时核价
+
 四步：拿到 Token → 配进 Cursor → 把 `SKILL.md` 交给 Agent → 复制下面的话去问。
 
 ### 1. Token
@@ -115,6 +129,7 @@ Cursor：**设置 → Tools & MCP → Installed MCP Servers → Add Custom MCP**
 ## 仓库里还有什么
 
 ```text
+miniapp/                 # 本机小程序：python3 miniapp/server.py
 SKILL.md                 # Agent 主指令（裁决口吻与调用顺序）
 MCP_INTEGRATION.md       # 用到的 MCP Tool 与调用链
 CONTEST_DECLARATION.md   # 参赛声明
