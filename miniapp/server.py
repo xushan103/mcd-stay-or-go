@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -18,6 +19,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "miniapp"))
 
 from engine import menu_groups, run_verdict  # noqa: E402
+from locate import place_from_nominatim  # noqa: E402
 
 STATIC = Path(__file__).resolve().parent / "static"
 HOST = "127.0.0.1"
@@ -55,7 +57,11 @@ class App(BaseHTTPRequestHandler):
         self._send(200, file_path.read_bytes(), types.get(file_path.suffix, "application/octet-stream"))
 
     def do_POST(self) -> None:  # noqa: N802
-        if urlparse(self.path).path != "/api/verdict":
+        path = urlparse(self.path).path
+        if path == "/api/locate":
+            self._locate()
+            return
+        if path != "/api/verdict":
             self._json(404, {"error": "没有这个接口"})
             return
         length = int(self.headers.get("Content-Length", "0"))
@@ -64,10 +70,14 @@ class App(BaseHTTPRequestHandler):
             wage = raw.get("wage")
             max_minutes = raw.get("max_minutes")
             names = raw.get("names")
+            city = str(raw.get("city") or "").strip()
+            keyword = str(raw.get("keyword") or "").strip()
+            place = " · ".join(part for part in (city, keyword) if part)
             result = run_verdict(
                 str(raw.get("scenario") or "banshao"),
                 names=names if isinstance(names, list) else None,
                 use_coupon=bool(raw.get("use_coupon")),
+                place=place,
                 minutes_to_spot=float(raw.get("minutes_to_spot") or 0),
                 wage=None if wage in (None, "") else float(wage),
                 driving=bool(raw.get("driving")),
@@ -83,6 +93,33 @@ class App(BaseHTTPRequestHandler):
             self._json(422, {"error": str(exc)})
             return
         self._json(200, result)
+
+
+    def _locate(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            raw = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
+            lat = float(raw["lat"])
+            lng = float(raw["lng"])
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            self._json(400, {"error": "没有拿到坐标"})
+            return
+        url = (
+            "https://nominatim.openstreetmap.org/reverse"
+            f"?format=jsonv2&lat={lat}&lon={lng}&accept-language=zh-CN"
+        )
+        request = urllib.request.Request(url, headers={"User-Agent": "mcd-stay-or-go/0.1"})
+        try:
+            with urllib.request.urlopen(request, timeout=8) as response:
+                data = json.loads(response.read().decode("utf-8"))
+        except Exception:
+            self._json(502, {"error": "当前位置没解析成城市和地点，请自己填。"})
+            return
+        found = place_from_nominatim(data)
+        if not found["label"]:
+            self._json(502, {"error": "当前位置没解析成城市和地点，请自己填。"})
+            return
+        self._json(200, found)
 
 
 def main() -> None:

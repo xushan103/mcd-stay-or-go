@@ -6,7 +6,7 @@ from dataclasses import asdict
 from typing import Optional
 
 from baskets import BasketOffer, MenuItem, choose_basket, explain_choice, plan_baskets
-from decide import ChannelQuote, decide, estimate_drive_minutes
+from decide import ChannelQuote, decide
 
 from menu_catalog import (
     CAPTURED_AT,
@@ -15,7 +15,6 @@ from menu_catalog import (
     COUPON_CARTS,
     COUPON_LINES,
     GROUPS,
-    PLACE,
     SOURCE,
     STORES,
     products,
@@ -49,12 +48,11 @@ def _unmatched_reason(selected: list[dict], driving: bool) -> str:
     return "。".join(bits) + "。"
 
 
-def _minutes_for(channel_id: str, store: dict, minutes_to_spot: float) -> float:
+def _minutes_for(channel_id: str, minutes_to_spot: float) -> float:
+    """到店时间用你填的分钟。快照里的小白楼距离不代表你现在的位置。"""
     if channel_id == "delivery":
         return 0.0
-    if channel_id == "drivethru":
-        return estimate_drive_minutes(store["distance_m"])
-    return round(minutes_to_spot + store["distance_m"] / 80.0 + 5.0, 1)
+    return round(minutes_to_spot, 1)
 
 
 def _selection(names: list[str]) -> list[dict]:
@@ -148,6 +146,7 @@ def run_verdict(
     names: Optional[list[str]] = None,
     food: Optional[str] = None,
     use_coupon: bool = False,
+    place: Optional[str] = None,
     minutes_to_spot: float = 0,
     wage: Optional[float] = None,
     driving: bool = False,
@@ -178,7 +177,7 @@ def run_verdict(
 
     for channel_id, store in STORES.items():
         offers, summed = _channel_basket(channel_id, selected, use_coupon)
-        minutes = _minutes_for(channel_id, store, minutes_to_spot)
+        minutes = _minutes_for(channel_id, minutes_to_spot)
         if not offers:
             rows.append(
                 {
@@ -209,6 +208,8 @@ def run_verdict(
             note += " 这组没有单独的整单核价，单品用的是菜单标价。"
         if needs_car and not driving:
             note += " 你没开车，这条只作对照，不进入裁决。"
+        elif needs_car:
+            note += " 得来速距离没有按你的位置查，时间先用你填的分钟。"
         row = {
             "channel": channel_id,
             "label": store["label"],
@@ -250,7 +251,7 @@ def run_verdict(
         "scenario": {
             "id": "picked",
             "title": title,
-            "place": PLACE,
+            "place": (place or "").strip() or "位置还没填",
             "source": SOURCE,
             "captured_at": CAPTURED_AT,
         },

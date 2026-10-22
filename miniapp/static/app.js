@@ -5,6 +5,8 @@ const pickedEl = document.querySelector("#picked");
 const resultEl = document.querySelector("#result");
 const errorEl = document.querySelector("#error");
 const sourceEl = document.querySelector("#source");
+const cityEl = document.querySelector("#city");
+const keywordEl = document.querySelector("#keyword");
 const minutesEl = document.querySelector("#minutes");
 const wageEl = document.querySelector("#wage");
 const maxEl = document.querySelector("#maxMinutes");
@@ -125,6 +127,8 @@ async function ask() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         names: [...state.selected],
+        city: cityEl.value,
+        keyword: keywordEl.value,
         use_coupon: couponEl.checked,
         minutes_to_spot: minutesEl.value,
         wage: wageEl.value,
@@ -146,6 +150,36 @@ async function ask() {
 }
 
 document.querySelector("#go").addEventListener("click", ask);
+document.querySelector("#here").addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    showError("这个浏览器给不了当前位置，请自己填城市和地点。");
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    try {
+      const response = await fetch("/api/locate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        showError(data.error || "当前位置没有解析出来");
+        return;
+      }
+      cityEl.value = data.city || "";
+      keywordEl.value = data.keyword || "";
+      ask();
+    } catch (error) {
+      showError("当前位置没有解析出来，请自己填。");
+    }
+  }, () => {
+    showError("浏览器没有给出当前位置，请自己填城市和地点。");
+  }, { enableHighAccuracy: true, timeout: 8000 });
+});
 document.querySelector("#clear").addEventListener("click", () => {
   state.selected.clear();
   menuEl.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("on"));

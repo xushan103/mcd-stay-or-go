@@ -14,6 +14,22 @@
       <p class="lead">同一顿饭，三条路。先问你还要多久，再告诉你该不该出门。</p>
     </header>
 
+    <section class="card" aria-label="位置">
+      <p class="label">你在哪</p>
+      <div class="split">
+        <label class="field">
+          <span>城市</span>
+          <input id="city" type="text" placeholder="上海市" autocomplete="address-level1">
+        </label>
+        <label class="field">
+          <span>地点</span>
+          <input id="keyword" type="text" placeholder="徐家汇" autocomplete="off">
+        </label>
+      </div>
+      <button id="here" type="button" class="again">用当前位置</button>
+      <p class="hint">这里填的是你现在的位置。菜单价格仍是小白楼店的快照，还不能按新位置换一家店。</p>
+    </section>
+
     <section class="card" aria-label="这顿饭">
       <div class="row">
         <p class="label">想吃什么</p>

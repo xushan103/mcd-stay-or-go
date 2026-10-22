@@ -145,10 +145,18 @@ h1 {
   background: var(--soft);
 }
 
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .field, .check {
   display: block;
   margin-top: 14px;
 }
+
+.split .field { margin-top: 0; }
 
 .field span, .check span { display: block; font-size: 14px; }
 
