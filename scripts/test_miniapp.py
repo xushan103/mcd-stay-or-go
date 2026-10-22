@@ -45,6 +45,31 @@ class MiniAppTests(unittest.TestCase):
         self.assertEqual(pickup["price_yuan"], 25.4)
         self.assertEqual(result["headline"], "到店自取")
 
+    def test_menu_lists_burger_snack_and_drink(self) -> None:
+        from engine import menu_groups
+
+        groups = {item["id"]: item for item in menu_groups()}
+        self.assertEqual([item["label"] for item in menu_groups()], ["汉堡", "小食", "饮料"])
+        burgers = [item["name"] for item in groups["burger"]["items"]]
+        snacks = [item["name"] for item in groups["snack"]["items"]]
+        drinks = [item["name"] for item in groups["drink"]["items"]]
+        self.assertIn("板烧鸡腿堡", burgers)
+        self.assertIn("巨无霸", burgers)
+        self.assertIn("薯条", snacks)
+        self.assertIn("可乐", drinks)
+
+    def test_picked_juba_and_fries_prefers_combo(self) -> None:
+        result = run_verdict(names=["巨无霸", "薯条"], minutes_to_spot=5)
+        pickup = next(row for row in result["rows"] if row["channel"] == "pickup")
+        self.assertEqual(pickup["product_name"], "巨无霸三件套")
+        self.assertEqual(pickup["price_yuan"], 36.5)
+
+    def test_picked_chicken_uses_menu_price(self) -> None:
+        result = run_verdict(names=["麦香鸡"], minutes_to_spot=5)
+        pickup = next(row for row in result["rows"] if row["channel"] == "pickup")
+        self.assertEqual(pickup["product_name"], "麦香鸡")
+        self.assertEqual(pickup["price_yuan"], 17.0)
+
     def test_short_limit_drops_the_walk(self) -> None:
         result = run_verdict("banshao", minutes_to_spot=5, max_minutes=5)
         self.assertEqual(result["headline"], "麦乐送")

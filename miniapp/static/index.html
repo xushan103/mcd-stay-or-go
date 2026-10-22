@@ -15,8 +15,13 @@
     </header>
 
     <section class="card" aria-label="这顿饭">
-      <p class="label">这顿想吃</p>
-      <div id="scenarios" class="choices"></div>
+      <div class="row">
+        <p class="label">想吃什么</p>
+        <button id="clear" type="button" class="text">清空</button>
+      </div>
+      <p id="picked" class="picked">还没点</p>
+      <div id="menu"></div>
+      <p class="hint">按钮上是到店菜单标价。套餐不用点，能盖住你选的品会自动拿来比。外送和得来速按各自菜单算。</p>
 
       <label class="field">
         <span>还有几分钟到店附近</span>
@@ -25,6 +30,10 @@
       <label class="check">
         <input id="driving" type="checkbox">
         <span>我开着车，把得来速算进去</span>
+      </label>
+      <label class="check">
+        <input id="coupon" type="checkbox">
+        <span>麦辣用上 11.9 元券</span>
       </label>
       <label class="field">
         <span>时薪（元/小时，可不填）</span>

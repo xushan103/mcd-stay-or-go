@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "miniapp"))
 
-from engine import list_scenarios, run_verdict  # noqa: E402
+from engine import menu_groups, run_verdict  # noqa: E402
 
 STATIC = Path(__file__).resolve().parent / "static"
 HOST = "127.0.0.1"
@@ -42,8 +42,8 @@ class App(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
-        if path == "/api/scenarios":
-            self._json(200, {"scenarios": list_scenarios()})
+        if path == "/api/menu":
+            self._json(200, {"groups": menu_groups(), "captured_at": "2026-10-22 15:50"})
             return
         if path == "/":
             path = "/index.html"
@@ -63,8 +63,11 @@ class App(BaseHTTPRequestHandler):
             raw = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
             wage = raw.get("wage")
             max_minutes = raw.get("max_minutes")
+            names = raw.get("names")
             result = run_verdict(
                 str(raw.get("scenario") or "banshao"),
+                names=names if isinstance(names, list) else None,
+                use_coupon=bool(raw.get("use_coupon")),
                 minutes_to_spot=float(raw.get("minutes_to_spot") or 0),
                 wage=None if wage in (None, "") else float(wage),
                 driving=bool(raw.get("driving")),
