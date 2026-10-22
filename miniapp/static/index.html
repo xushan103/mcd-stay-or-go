@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>麦麦去留</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <main class="phone">
+    <header class="top">
+      <p class="mark">非官方 · 决策辅助</p>
+      <h1>麦麦去留</h1>
+      <p class="lead">同一顿饭，三条路。先问你还要多久，再告诉你该不该出门。</p>
+    </header>
+
+    <section class="card" aria-label="这顿饭">
+      <p class="label">这顿想吃</p>
+      <div id="scenarios" class="choices"></div>
+
+      <label class="field">
+        <span>还有几分钟到店附近</span>
+        <input id="minutes" type="number" min="0" step="1" inputmode="numeric" value="5">
+      </label>
+      <label class="check">
+        <input id="driving" type="checkbox">
+        <span>我开着车，把得来速算进去</span>
+      </label>
+      <label class="field">
+        <span>时薪（元/小时，可不填）</span>
+        <input id="wage" type="number" min="0" step="1" inputmode="decimal" placeholder="不填就只给临界时薪">
+      </label>
+      <label class="field">
+        <span>最多愿意出门几分钟（可不填）</span>
+        <input id="maxMinutes" type="number" min="0" step="1" inputmode="numeric" placeholder="不填就不限制">
+      </label>
+      <button id="go" type="button">看去还是留</button>
+      <p id="error" class="error" hidden></p>
+    </section>
+
+    <section id="result" class="card result" hidden aria-live="polite"></section>
+
+    <footer>
+      <p id="source"></p>
+      <p>默认不下单。实时价仍以麦当劳官方渠道为准。</p>
+    </footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
