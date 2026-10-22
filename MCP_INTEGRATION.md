@@ -15,7 +15,8 @@
 | `query-nearby-stores` | 拉取到店自取 / 得来速门店与距离 |
 | `delivery-query-addresses` | 列出用户外送地址 |
 | `delivery-query-stores` | 按地址查可配送门店与 `beCode` |
-| `query-meals` | 各通道分别取实时菜单，匹配同类商品 |
+| `query-meals` | 各通道分别取实时菜单。单点和盖住点名的套餐都要留下 |
+| `query-meal-detail` | 套餐默认子项。名称对得上但还没拆开的，不能直接丢掉 |
 | `query-store-coupons` | 各通道可用券（可选） |
 | `available-coupons` / `auto-bind-coupons` | 领券后再核价（需用户确认） |
 | `calculate-price` | **核心**：官方到手价（含配送/打包/优惠） |
@@ -36,13 +37,17 @@ now-time-info
         └─ delivery-query-addresses → delivery-query-stores(beType=2)
         │
         ▼
-query-meals × 3（各通道菜单，匹配「巨无霸*套餐」同类）
+query-meals × 3
         │
         ▼
-calculate-price × 3（得到 price 分；外送含 delivery/packing）
+scripts/baskets.py：单点，加上子项能盖住点名的套餐
+（套餐可以多一杯可乐；子项未拆开的先 query-meal-detail）
         │
         ▼
-scripts/decide.py（临界时薪 + 综合成本排序）
+calculate-price ×（通道 × 篮子）（外送含 delivery/packing）
+        │
+        ▼
+同一通道取更便宜的篮子，再交给 scripts/decide.py
         │
         ▼
 输出「去 / 留」裁决表；询问是否下单

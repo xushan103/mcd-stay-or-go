@@ -31,8 +31,9 @@ description: >-
    失败时标明「该通道未核价成功」。
 3. **三条通道各自取数、各自核价。** 外送菜单编码常与到店不同，禁止硬套同一 `productCode`。
 4. **券池互不通用。** 到店券不能直接套到外送；各通道用各通道的 `query-store-coupons`。
-5. **算术交给 `scripts/decide.py`。** Agent 负责取数与表达，不口算优惠叠加。
-6. **不自动下单；不创建地址**（除非用户明确要求）。
+5. **先列候选篮子，再比三条路。** 点名是「要吃到的东西」。盖住全部点名的套餐从一开始就入选，多出来的可乐、小食不要丢掉。见下一节。
+6. **算术交给 `scripts/decide.py`。** Agent 负责取数与表达，不口算优惠叠加，也不把菜单标价相加当到手价。
+7. **不自动下单；不创建地址**（除非用户明确要求）。
 
 ---
 
@@ -43,12 +44,14 @@ description: >-
 | 1 | `now-time-info` | 当前时段，判断早餐/午晚是否可售 |
 | 2 | `query-nearby-stores` | 到店自取 `beType=1`；得来速 `beType=5` |
 | 3 | `delivery-query-addresses` → `delivery-query-stores` | 外送门店；`beType=2` |
-| 4 | `query-meals` | **每个通道各查一次**菜单，匹配同类商品 |
-| 5 | `query-store-coupons` | 可选；各通道分别查可用券 |
-| 6 | `available-coupons` / `auto-bind-coupons` | 用户确认后再领 |
-| 7 | `calculate-price` | **每条可达通道必须核价一次** |
-| 8 | 本地 `scripts/decide.py` | 临界时薪 + ETA 裁决 |
-| 9 | `create-order` | 仅用户明确下单时 |
+| 4 | `query-meals` | **每个通道各查一次**菜单 |
+| 5 | `scripts/baskets.py` | 单点 + 盖住点名的套餐；子项未拆开的同名套餐先查详情 |
+| 6 | `query-meal-detail` | 待查套餐的默认子项（`isDefault=1`） |
+| 7 | `query-store-coupons` | 可选；各通道分别查可用券 |
+| 8 | `available-coupons` / `auto-bind-coupons` | 用户确认后再领 |
+| 9 | `calculate-price` | **每个通道的每个候选篮子各核价一次** |
+| 10 | 本地 `scripts/decide.py` | 临界时薪 + ETA 裁决。每条通道只送该通道更便宜的篮子 |
+| 11 | `create-order` | 仅用户明确下单时 |
 
 ### beType / orderType
 
@@ -65,6 +68,19 @@ description: >-
 - 步行：距离(m) ÷ 80 + 店内等待 5 分钟
 - 驾车：距离(m) ÷ 500 + 车道等待 4 分钟
 - 麦乐送：用户主动时间默认 **0**（等外卖不算出门）
+
+---
+
+## 候选篮子（先于三路比价）
+
+用 `scripts/baskets.py` 的 `plan_baskets` / `choose_basket`。规则：
+
+1. **单点篮子**：每个点名配一个单品。薯条默认中份（名称里带「中」的优先）。
+2. **套餐篮子**：默认子项盖住全部点名就入选。板烧三件套盖住「板烧鸡腿堡 + 薯条」，多出来的可乐留在 `extras` 里，不能因为「用户没点可乐」而丢掉。
+3. **名称对得上、子项还没拆的套餐**放进 `pending_inspection`。先 `query-meal-detail`，再决定去留。`plan.ready` 为假时，不得做最终裁决。
+4. 子项盖不住点名的（巨无霸套餐对板烧）进入 `rejected`，不核价。
+5. 每个入选篮子都要 `calculate-price`。不得只核单点。
+6. 同一通道用 `choose_basket`：到手价更低的胜出；价格相同留下子项更多的套餐。回复里用 `explain_choice` 写明落选篮子，例如单点 ¥37.00、三件套 ¥34.50 还多一杯可乐。
 
 ---
 
