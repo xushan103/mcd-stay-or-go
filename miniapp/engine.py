@@ -37,6 +37,18 @@ def menu_groups() -> list[dict]:
     return [{"id": key, "label": label, "items": grouped[key]} for key, label in GROUPS]
 
 
+def _unmatched_reason(selected: list[dict], driving: bool) -> str:
+    """三条路都进不了裁决时，说明每一条缺了什么。"""
+    bits = ["同一条路要同时有你点的全部单品，现在凑不齐。"]
+    for channel_id, store in STORES.items():
+        missing = [item["name"] for item in selected if channel_id not in item["channels"]]
+        if missing:
+            bits.append(f"{store['label']}没有{'、'.join(missing)}")
+        elif store.get("needs_car") and not driving:
+            bits.append(f"{store['label']}有，但你没开车，勾上「我开着车」才会拿来比")
+    return "。".join(bits) + "。"
+
+
 def _minutes_for(channel_id: str, store: dict, minutes_to_spot: float) -> float:
     if channel_id == "delivery":
         return 0.0
@@ -228,7 +240,7 @@ def run_verdict(
             )
 
     if not quotes:
-        raise ValueError("这几样在三条路里都对不上。")
+        raise ValueError(_unmatched_reason(selected, driving))
 
     verdict = decide(quotes, wage_yuan_per_hour=wage, max_active_minutes=max_minutes)
     for row in rows:

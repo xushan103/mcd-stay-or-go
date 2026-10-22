@@ -70,6 +70,19 @@ class MiniAppTests(unittest.TestCase):
         self.assertEqual(pickup["product_name"], "麦香鸡")
         self.assertEqual(pickup["price_yuan"], 17.0)
 
+    def test_mix_from_different_channels_explains_the_gap(self) -> None:
+        with self.assertRaises(ValueError) as caught:
+            run_verdict(names=["心形薯饼8块", "双层脆鸡堡"], minutes_to_spot=5)
+        message = str(caught.exception)
+        self.assertIn("到店自取没有双层脆鸡堡", message)
+        self.assertIn("麦乐送没有心形薯饼8块", message)
+        self.assertNotIn("都对不上", message)
+
+    def test_drive_only_item_asks_to_include_the_car(self) -> None:
+        with self.assertRaises(ValueError) as caught:
+            run_verdict(names=["怡泉+C"], minutes_to_spot=5)
+        self.assertIn("我开着车", str(caught.exception))
+
     def test_short_limit_drops_the_walk(self) -> None:
         result = run_verdict("banshao", minutes_to_spot=5, max_minutes=5)
         self.assertEqual(result["headline"], "麦乐送")
